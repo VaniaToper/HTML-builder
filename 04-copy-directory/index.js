@@ -1,25 +1,28 @@
 const path = require('path');
 const fs = require('fs');
-const filePath = path.join(__dirname, 'files-copy');
+const copyFolderPath = path.join(__dirname, 'files-copy');
+const baseFolderPath = path.join(__dirname, 'files');
 
-const dir = path.join(__dirname, 'files');
-function copyDir() {
-  fs.mkdir(filePath, { recursive: true }, (err) => {
+function copyDir(baseFolderPath, copyFolderPath) {
+  fs.mkdir(copyFolderPath, { recursive: true }, (err) => {
     if (err) throw err;
   });
-  fs.readdir(dir, (err, files) => {
+  fs.readdir(baseFolderPath, { withFileTypes: true }, (err, files) => {
     if (err) throw err;
     else {
       files.forEach((file) => {
-        const baseFile = path.join(__dirname, 'files', file);
-        const copyFile = path.join(__dirname, 'files-copy', file);
-        fs.copyFile(baseFile, copyFile, (err) => {
-          if (err) {
-            throw err;
-          }
-        });
+        const baseFilePath = path.join(baseFolderPath, file.name);
+        const copyFilePath = path.join(copyFolderPath, file.name);
+        if (file.isFile()) {
+          fs.copyFile(baseFilePath, copyFilePath, (err) => {
+            if (err) {
+              throw err;
+            }
+          });
+        } else copyDir(baseFilePath, copyFilePath);
       });
     }
   });
 }
-copyDir();
+copyDir(baseFolderPath, copyFolderPath);
+module.exports = copyDir;
